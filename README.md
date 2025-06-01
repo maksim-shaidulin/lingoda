@@ -38,19 +38,41 @@ kubectl -n symfony-demo apply -f k8s/nginx-deployment.yaml
 kubectl -n symfony-demo apply -f k8s/services.yaml
 ```
 
-## Access the App
+## Access the Application
 
 Start the Minikube tunnel:
-```
+```bash
 minikube tunnel
 ```
 
 Then open the Symfony app in your browser:
-```
+```bash
 minikube service -n symfony-demo nginx
 ```
 
-## ToDo
+## Database migrations
+
+All the DB changes that may break the existing code should follow the [expand and contract pattern](https://blog.thepete.net/blog/2023/12/05/expand/contract-making-a-breaking-change-without-a-big-bang/).
+
+Such changes should be applied in the following sequence:
+#. Run a DB migration that updates schema, but don't break the existing code. For instance if you need to add a non-nullable column, alter the table and add this column as nullable.
+#. Run a script to set a value to this column in all the existing rows.
+#. Deploy the new version of the application that works with this new column.
+#. Once all instances of new application is deployed, it is safe to alter the table and make the column not-nullable using new migration.
+
+To run database schema migrations before starting the application:
+```bash
+kubectl -n symfony-demo apply -f k8s/db-migration-job.yaml
+kubectl -n symfony-demo wait --for=condition=complete job/db-migrate
+```
+
+If you need to rerun the job:
+```bash
+kubectl -n symfony-demo delete job db-migrate
+kubectl -n symfony-demo apply -f k8s/db-migration-job.yaml
+```
+
+## ToDo/Considerations
 
 * Ask an user to create a Secret in advance and don't store the secret in git
 * Move images to Docker Hub/JFrog Artifactory instead of building locally
@@ -58,4 +80,4 @@ minikube service -n symfony-demo nginx
 * Add healthcheck probes
 * Use multi-stage Docker builds to make the image smaller and secure
 * Do not use a root user to run the app
-
+* Migrate to Helm and use hooks to run DB migrations automatically
