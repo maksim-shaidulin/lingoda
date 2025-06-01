@@ -49,3 +49,13 @@ Then open the Symfony app in your browser:
 ```
 minikube service -n symfony-demo nginx
 ```
+
+## ToDo
+
+* Ask an user to create a Secret in advance and don't store the secret in git
+* Move images to Docker Hub/JFrog Artifactory instead of building locally
+* Use standard nginx image instead of custom one and just pass the config
+* Add healthcheck probes
+* Use multi-stage Docker builds to make the image smaller and secure
+* Do not use a root user to run the app
+
