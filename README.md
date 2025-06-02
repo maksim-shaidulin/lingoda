@@ -25,9 +25,17 @@ docker build -t symfony-nginx:latest -f Dockerfile.nginx .
 
 ## Create Kubernetes Secret
 
-Note: You must create this secret manually. It is not stored in Git for security reasons.
+Symfony requires a password to be provided. As we can't store secrets in git, you have to define it as Kubernetes Secret in advance.
 
-Create the `APP_SECRET` as a Kubernetes Secret outside the repository:
+Create the `APP_SECRET` as a Kubernetes Secret:
+```bash
+kubectl -n symfony-demo create secret generic symfony-secret --from-literal=APP_SECRET=<your-secret>
+```
+
+You can generate the password on the fly as random chars:
+```bash
+kubectl -n symfony-demo create secret generic symfony-secret --from-literal=APP_SECRET=$(openssl rand -hex 16)
+```
 
 ## Deploy to Kubernetes
 
@@ -55,10 +63,10 @@ minikube service -n symfony-demo nginx
 All the DB changes that may break the existing code should follow the [expand and contract pattern](https://blog.thepete.net/blog/2023/12/05/expand/contract-making-a-breaking-change-without-a-big-bang/).
 
 Such changes should be applied in the following sequence:
-#. Run a DB migration that updates schema, but don't break the existing code. For instance if you need to add a non-nullable column, alter the table and add this column as nullable.
-#. Run a script to set a value to this column in all the existing rows.
-#. Deploy the new version of the application that works with this new column.
-#. Once all instances of new application is deployed, it is safe to alter the table and make the column not-nullable using new migration.
+1. Run a DB migration that updates schema, but don't break the existing code. For instance if you need to add a non-nullable column, alter the table and add this column as nullable.
+2. Run a script to set a value to this column in all the existing rows.
+3. Deploy the new version of the application that works with this new column.
+4. Once all instances of new application is deployed, it is safe to alter the table and make the column not-nullable using new migration.
 
 To run database schema migrations before starting the application:
 ```bash
