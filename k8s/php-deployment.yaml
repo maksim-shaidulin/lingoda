@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: php
-          image: symfony-php:latest
-          imagePullPolicy: Never
+          image: symfony-php:v2.7.0
+          imagePullPolicy: Never # for Minikube, change to Always for production
           ports:
             - containerPort: 9000
           env:

@@ -12,20 +12,33 @@ This project demonstrates how to deploy the official [Symfony Demo](https://gith
 
 ---
 
-## Build Images (inside Minikube)
+## Build Images
 
-Make sure you're building images **inside the Minikube Docker environment**:
+To deploy and run the demo application you need create a Docker image. 
 
+In case of using local Minikube the images keep locally, all you need is to build them and Kubernetes will pull them automatically. If you use a remote Docker registry, you have to push the image to your registry and update the lines `image: symfony-php:v2.7.0` in `php-deployment.yaml` and `db-migration-job.yaml` to point to a correct registry and repository.
+
+For Minikube environment first run this command:
 ```bash
 eval $(minikube docker-env)
-
-docker build -t symfony-php:latest -f Dockerfile .
-docker build -t symfony-nginx:latest -f Dockerfile.nginx .
 ```
+
+Use the provided `build.sh` script to build Docker images for the Symfony application and Nginx. You can specify the Symfony version tag (e.g., `v2.7.0`) as an argument. If no version is provided, it defaults to `v2.7.0`.
+
+**Usage:**
+```bash
+./build.sh v2.7.0
+```
+or simply:
+```bash
+./build.sh
+```
+This will build the images `symfony-php:v2.7.0` and `symfony-nginx:latest`.
+
 
 ## Create Kubernetes Secret
 
-Symfony requires a password to be provided. As we can't store secrets in git, you have to define it as Kubernetes Secret in advance.
+Symfony requires an application password to be provided. As we can't store secrets in git, you have to define it as Kubernetes Secret in advance.
 
 Create the `APP_SECRET` as a Kubernetes Secret:
 ```bash
@@ -74,18 +87,32 @@ kubectl -n symfony-demo apply -f k8s/db-migration-job.yaml
 kubectl -n symfony-demo wait --for=condition=complete job/db-migrate
 ```
 
+If the migration task will fail, Kubernetes will try to run it one more time.
+
 If you need to rerun the job:
 ```bash
 kubectl -n symfony-demo delete job db-migrate
 kubectl -n symfony-demo apply -f k8s/db-migration-job.yaml
 ```
 
+## Upgrading to a New Version of the Application
+
+To upgrade the Symfony Demo application to a new version, follow these steps:
+1. Build the Docker images for the new version, e.g. `v2.8.0` see [Build Images](#build-images).
+2. Update the Kubernetes Manifests. Edit your deployment files (e.g., `k8s/php-deployment.yaml` and `k8s/db-migration-job.yaml`) and update the `image` field to use the new tag.
+3. Apply Database Migrations (if needed). See [Database migrations](#database-migrations).
+4. Deploy the New Application Version. See [Deploy to Kubernetes](#deploy-to-kubernetes).
+5. Verify the Upgrade. Use `kubectl get pods` and `kubectl get services` to check the status of your deployment.
+
+
 ## ToDo/Considerations
 
-* Ask an user to create a Secret in advance and don't store the secret in git
-* Move images to Docker Hub/JFrog Artifactory instead of building locally
-* Use standard nginx image instead of custom one and just pass the config
-* Add healthcheck probes
-* Use multi-stage Docker builds to make the image smaller and secure
-* Do not use a root user to run the app
-* Migrate to Helm and use hooks to run DB migrations automatically
+* [X] Ask an user to create a Secret in advance and don't store the secret in git
+* [ ] Move images to Docker Hub/JFrog Artifactory instead of building locally
+* [ ] Use standard nginx image instead of custom one and just pass the config
+* [ ] Add health check probes
+* [ ] Use multi-stage Docker builds to make the image smaller and secure
+* [ ] Do not use a root user to run the app
+* [ ] Migrate to Helm and use hooks to run DB migrations automatically
+* [ ] Keep the Symfony version in one place my using Helm or Kustomize
+
