@@ -21,4 +21,7 @@ spec:
             - containerPort: 9000
           env:
             - name: APP_SECRET
-              value: "NotARealSecret123"
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-secret
+                  key: APP_SECRET

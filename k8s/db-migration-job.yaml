@@ -13,4 +13,10 @@ spec:
           imagePullPolicy: Never
           # https://symfony.com/doc/current/doctrine.html#migrations-creating-the-database-tables-schema
           command: ["php", "bin/console", "doctrine:migrations:migrate"]
+          env:
+            - name: APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: symfony-secret
+                  key: APP_SECRET
       restartPolicy: Never
