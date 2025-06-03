@@ -3,8 +3,12 @@ kind: Deployment
 metadata:
   name: nginx
   namespace: symfony-demo
+  labels:
+    app: nginx
+  annotations:
+    description: "Nginx deployment for Symfony Demo"
 spec:
-  replicas: 1
+  replicas: 2 # Adjust the number of replicas as needed
   selector:
     matchLabels:
       app: nginx
@@ -15,7 +19,39 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: symfony-nginx:latest
-          imagePullPolicy: Never
+          image: nginx:1.27.4-alpine
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: nginx.conf
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
