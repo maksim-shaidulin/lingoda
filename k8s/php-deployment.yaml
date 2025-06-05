@@ -4,7 +4,6 @@ metadata:
   name: php
   namespace: symfony-demo
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: php
@@ -16,7 +15,7 @@ spec:
       containers:
         - name: php
           image: symfony-php:v2.7.0
-          imagePullPolicy: Never # for Minikube, change to Always for production
+          imagePullPolicy: Never # for Minikube, change to IfNotPresent for production
           ports:
             - containerPort: 9000
           env:
@@ -25,3 +24,16 @@ spec:
                 secretKeyRef:
                   name: symfony-secret
                   key: APP_SECRET
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # This ensures that at least one pod is always available during updates
+      maxSurge: 1
+      maxUnavailable: 0
