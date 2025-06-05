@@ -8,7 +8,7 @@ metadata:
   annotations:
     description: "Nginx deployment for Symfony Demo"
 spec:
-  replicas: 2 # Adjust the number of replicas as needed
+  replicas: 2 # Enough for uninterrupted service during updates
   selector:
     matchLabels:
       app: nginx
@@ -45,7 +45,7 @@ spec:
           volumeMounts:
             - name: nginx-config
               mountPath: /etc/nginx/conf.d/default.conf
-              subPath: nginx.conf
+              subPath: default.conf
       volumes:
         - name: nginx-config
           configMap:
