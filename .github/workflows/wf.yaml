@@ -1,0 +1,21 @@
+name: Workflow Example
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: string
+        description: The environment to deploy to, either 'prod' or 'dev'
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      # - name: Check environment
+      #   run: |
+      #     if [ "${{ inputs.environment }}" != "prod" ] && [ "${{ inputs.environment }}" != "dev" ]; then
+      #       echo "Invalid environment: ${{ inputs.environment }}"
+      #       exit 1
+      #     fi
+      - run: echo "${{ vars.ENV_VAR}}" # environment-specific variable
