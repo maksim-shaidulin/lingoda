@@ -1,0 +1,17 @@
+name: Reusable workflow
+
+on:
+  workflow_call:
+    inputs:
+      param1:
+        type: string
+        description: 'Parameter 1'
+        default: 'default value'
+        required: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print parameter
+        run: echo "Parameter 1 = '${{ inputs.param1 }}'"

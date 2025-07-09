@@ -1,0 +1,10 @@
+name: Workflow Example
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run:
+    uses: ./.github/workflows/reusable.yaml
+    with:
+      param1: ${{ vars.PARAM1 }}
